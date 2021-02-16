@@ -14,6 +14,7 @@ class ProductsController extends Controller
     public function destroy($productid)
     {
         $product = Product::find($productid);
+        $product->expenditures()->delete();
         $product->delete();
         return 'deleted';
     }
