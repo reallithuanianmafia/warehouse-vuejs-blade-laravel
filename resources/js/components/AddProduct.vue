@@ -10,6 +10,7 @@
                             <th>Name</th>
                             <th>Current Quantity</th>
                             <th>Notes</th>
+                            <th>Edit</th>
                             <th>Remove</th>
                         </tr>
                     </thead>
@@ -20,6 +21,7 @@
                             <td>{{product.quantity}}</td>
                             <td>{{product.notes}}</td>
                             <td><a class="btn btn-sm btn-light" :href="'api/products/'+ product.id + '/edit'">Edit</a></td>
+                            <td><button class="btn btn-sm btn-danger" v-on:click="removeProduct(product.id,index)">Delete</button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -50,47 +52,6 @@
 
 <script>
     export default {
-        data()
-        {
-            return {
-                name : null,
-                quantity: null,
-                notes: null,
-                products: null,
-                response: null,
-            }
-        },
-        methods:
-        {
-            newProduct()
-            {
-                var name = this.name;
-                var quantity = this.quantity;
-                var notes = this.notes;
-                
-                if(name == null || this.name == '')
-                {
-                    name = 'noname'
-                }
-                if(this.quantity == null || this.quantity == '')
-                {
-                    var myArray = [31,69];
-                    quantity = myArray[Math.floor(Math.random()*myArray.length)];
-                }
-                axios.post('/api/products/store', {
-                    name: name,
-                    quantity: quantity,
-                    notes: notes,
-                })
-                .then(response => this.response = response.data.id);
-                var gg = this.response;
-                this.products.push({"id": "<span class='badge badge-success'>New </span>","name": name, "quantity": quantity, "notes": notes});
-                Event.$emit('productCreated');
-    
-            },
-
-            
-        },
         mounted() {
             console.log('Component mounted.');
             axios.get('/api/products')
@@ -101,5 +62,63 @@
                 console.log(error);
                 });
         },
+        data()
+        {
+            return {
+                name : null,
+                quantity: null,
+                notes: null,
+                products: null,
+                getresponse: null,
+            }
+        },
+        methods:
+        {
+            newProduct()
+            {
+                var name = this.name;
+                var quantity = this.quantity;
+                var notes = this.notes;
+                var id;
+                if(name == null || this.name == '')
+                {
+                    name = 'noname'
+                }
+                if(this.quantity == null || this.quantity == '')
+                {
+                    var myArray = [31,69];
+                    quantity = myArray[Math.floor(Math.random()*myArray.length)];
+                }
+                
+                this.newProductAxios(name,quantity,notes);
+    
+            },
+            newProductAxios(name,quantity,notes)
+            {
+                axios.post('/api/products/store', {
+                    name: name,
+                    quantity: quantity,
+                    notes: notes,
+                })
+                .then(response => this.testFunc(response.data.id,name,quantity,notes));
+            },
+            testFunc(id,name,quantity,notes)
+            {
+                this.products.push({"id": id,"name": name, "quantity": quantity, "notes": notes});
+                Event.$emit('productCreated', {"id" : id, "name": name, "quantity" : quantity, "notes": notes});
+            },
+            removeProduct(productid,index)
+            {
+                this.products.splice(index,1);
+                axios.delete('/api/products/'+productid+'/destroy', {
+
+                })
+                .then(response => console.log(response));
+                Event.$emit('productDeleted', {"index" : index});
+            }
+
+            
+        },
+        
     }
 </script>

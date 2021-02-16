@@ -31,6 +31,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/api/products', 'MainController@index');
     Route::post('/api/products/store', 'MainController@store');
+    Route::delete('/api/products/{id}/destroy', 'ProductsController@destroy');
     Route::get('/api/deleteall', 'MainController@deleteallproduct');
 
     Route::get('/api/expenditures', 'ExpendituresController@index');

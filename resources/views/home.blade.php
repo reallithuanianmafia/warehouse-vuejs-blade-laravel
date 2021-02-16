@@ -4,7 +4,7 @@
 <div class="container-fluid" id="app">
     <div class="row justify-content-center">
 
-        <div class="col-md-9" style="margin-bottom:1% ">
+<!--        <div class="col-md-9" style="margin-bottom:1% ">
             <div class="card">
                 <div class="card-header">Recent updates related to System</div>
                     <ul class="list-group">
@@ -14,6 +14,7 @@
             </div>
             
         </div>
+ -->
         
         <!-- -->
         <div class="col-md-9" style="margin-bottom:1% ">
@@ -25,7 +26,7 @@
         <!-- -->
         <div class="col-md-9">
             <div class="card">
-                <expenditure-product ninja="ninjas123"></expenditure-product>
+                <expenditure-product></expenditure-product>
             </div>
         </div>
         <!-- -->

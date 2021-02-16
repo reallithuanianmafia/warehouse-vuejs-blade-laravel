@@ -1958,23 +1958,34 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
+  mounted: function mounted() {
+    var _this = this;
+
+    console.log('Component mounted.');
+    axios.get('/api/products').then(function (response) {
+      _this.products = response.data;
+    })["catch"](function (error) {
+      console.log(error);
+    });
+  },
   data: function data() {
     return {
       name: null,
       quantity: null,
       notes: null,
       products: null,
-      response: null
+      getresponse: null
     };
   },
   methods: {
     newProduct: function newProduct() {
-      var _this = this;
-
       var name = this.name;
       var quantity = this.quantity;
       var notes = this.notes;
+      var id;
 
       if (name == null || this.name == '') {
         name = 'noname';
@@ -1985,32 +1996,42 @@ __webpack_require__.r(__webpack_exports__);
         quantity = myArray[Math.floor(Math.random() * myArray.length)];
       }
 
+      this.newProductAxios(name, quantity, notes);
+    },
+    newProductAxios: function newProductAxios(name, quantity, notes) {
+      var _this2 = this;
+
       axios.post('/api/products/store', {
         name: name,
         quantity: quantity,
         notes: notes
       }).then(function (response) {
-        return _this.response = response.data.id;
+        return _this2.testFunc(response.data.id, name, quantity, notes);
       });
-      var gg = this.response;
+    },
+    testFunc: function testFunc(id, name, quantity, notes) {
       this.products.push({
-        "id": "<span class='badge badge-success'>New </span>",
+        "id": id,
         "name": name,
         "quantity": quantity,
         "notes": notes
       });
-      Event.$emit('productCreated');
+      Event.$emit('productCreated', {
+        "id": id,
+        "name": name,
+        "quantity": quantity,
+        "notes": notes
+      });
+    },
+    removeProduct: function removeProduct(productid, index) {
+      this.products.splice(index, 1);
+      axios["delete"]('/api/products/' + productid + '/destroy', {}).then(function (response) {
+        return console.log(response);
+      });
+      Event.$emit('productDeleted', {
+        "index": index
+      });
     }
-  },
-  mounted: function mounted() {
-    var _this2 = this;
-
-    console.log('Component mounted.');
-    axios.get('/api/products').then(function (response) {
-      _this2.products = response.data;
-    })["catch"](function (error) {
-      console.log(error);
-    });
   }
 });
 
@@ -2129,7 +2150,6 @@ __webpack_require__.r(__webpack_exports__);
   components: {
     AddProduct: _AddProduct__WEBPACK_IMPORTED_MODULE_0__["default"]
   },
-  props: ['ninja'],
   mounted: function mounted() {
     var _this = this;
 
@@ -2140,13 +2160,24 @@ __webpack_require__.r(__webpack_exports__);
     })["catch"](function (error) {
       console.log(error);
     });
-    Event.$on('productCreated', function () {
-      axios.get('/api/products').then(function (response) {
-        _this.products = response.data;
-        _this.productsExpenditures = response.data;
-      })["catch"](function (error) {
-        console.log(error);
+    Event.$on('productCreated', function (_ref) {
+      var id = _ref.id,
+          name = _ref.name,
+          quantity = _ref.quantity,
+          notes = _ref.notes;
+
+      _this.products.push({
+        "id": id,
+        "name": name,
+        "quantity": quantity,
+        "notes": notes,
+        expenditures: []
       });
+    });
+    Event.$on('productDeleted', function (_ref2) {
+      var index = _ref2.index;
+
+      _this.products.splice(index, 1);
     });
   },
   computed: {
@@ -2178,26 +2209,30 @@ __webpack_require__.r(__webpack_exports__);
   },
   methods: {
     newExpenditure: function newExpenditure() {
-      var _this3 = this;
-
-      var id = this.id;
+      var productid = this.id;
       var date = this.date;
       var quantity = this.quantity;
       var notes = this.notes;
-      var checkk;
+      this.newExpenditureAxios(productid, date, quantity, notes);
+    },
+    newExpenditureAxios: function newExpenditureAxios(productid, date, quantity, notes) {
+      var _this3 = this;
+
       axios.post('/api/expenditures/store', {
-        id: id,
+        id: productid,
         date: date,
         quantity: quantity,
         notes: notes
       }).then(function (response) {
-        return _this3.getstatus = response.data;
+        return _this3.testFunc(response.data.id, date, quantity, notes, productid);
       });
+    },
+    testFunc: function testFunc(responseid, date, quantity, notes, productid) {
       var getProduct = this.products.map(function (x) {
         return x.id;
-      }).indexOf(id);
+      }).indexOf(productid);
       this.products[getProduct].expenditures.push({
-        "id": "<span class='badge badge-success'>New </span>",
+        "id": responseid,
         'date': date,
         'quantity': quantity,
         'notes': notes
@@ -37904,6 +37939,21 @@ var render = function() {
                   },
                   [_vm._v("Edit")]
                 )
+              ]),
+              _vm._v(" "),
+              _c("td", [
+                _c(
+                  "button",
+                  {
+                    staticClass: "btn btn-sm btn-danger",
+                    on: {
+                      click: function($event) {
+                        return _vm.removeProduct(product.id, index)
+                      }
+                    }
+                  },
+                  [_vm._v("Delete")]
+                )
               ])
             ])
           }),
@@ -38037,6 +38087,8 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("Notes")]),
         _vm._v(" "),
+        _c("th", [_vm._v("Edit")]),
+        _vm._v(" "),
         _c("th", [_vm._v("Remove")])
       ])
     ])
@@ -38124,7 +38176,7 @@ var render = function() {
   var _c = _vm._self._c || _h
   return _c("div", [
     _c("div", { staticClass: "card-header" }, [
-      _vm._v("Expenditure Section " + _vm._s(_vm.ninja))
+      _vm._v("Expenditure Section\n    ")
     ]),
     _vm._v(" "),
     _c("div", { staticClass: "card-body" }, [

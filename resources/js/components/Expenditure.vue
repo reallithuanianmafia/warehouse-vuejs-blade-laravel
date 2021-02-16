@@ -1,8 +1,8 @@
 <template>
     <div>
-        <div class="card-header">Expenditure Section {{ninja}}</div>
-
-                <div class="card-body">
+        <div class="card-header">Expenditure Section
+        </div>
+         <div class="card-body">
                    <div class="row">
                        <!-- Testing -->
                         <pre></pre>
@@ -71,7 +71,6 @@
         components: {
           AddProduct
         },
-        props: ['ninja'],
         mounted() {
             console.log('Component mounted.');
             axios.get('/api/products')
@@ -82,16 +81,14 @@
                 .catch((error) => {
                 console.log(error);
                 });
-            Event.$on('productCreated', () => {
-                axios.get('/api/products')
-                .then((response) => {
-                this.products = response.data;
-                this.productsExpenditures = response.data;
-                })
-                .catch((error) => {
-                console.log(error);
-                });
-            });
+
+        Event.$on('productCreated', ({id,name,quantity,notes}) => {
+            this.products.push({"id": id, "name": name, "quantity": quantity, "notes": notes, expenditures: []});
+        });
+        Event.$on('productDeleted', ({index}) => {
+            this.products.splice(index,1);
+        });        
+            
             
         },
         computed: {
@@ -122,21 +119,31 @@
         {
             newExpenditure()
             {
-                var id = this.id;
+                var productid = this.id;
                 var date = this.date;
                 var quantity = this.quantity;
                 var notes = this.notes;
 
-                var checkk;
+                this.newExpenditureAxios(productid,date,quantity,notes);
+                
+                
+            },
+            newExpenditureAxios(productid,date,quantity,notes)
+            {
                 axios.post('/api/expenditures/store', {
-                    id: id,
+                    id: productid,
                     date: date,
                     quantity: quantity,
                     notes: notes,
                 })
-                .then(response => this.getstatus = response.data);
-                var getProduct = this.products.map(function(x) {return x.id; }).indexOf(id);
-                this.products[getProduct].expenditures.push({"id": "<span class='badge badge-success'>New </span>",'date': date,'quantity': quantity,'notes': notes});
+                .then(response => this.testFunc(response.data.id, date, quantity, notes, productid));
+            },
+            testFunc(responseid,date,quantity,notes,productid)
+            {
+                var getProduct = this.products.map(function(x) {return x.id; }).indexOf(productid);
+                this.products[getProduct].expenditures.push({"id": responseid,'date': date,'quantity': quantity,'notes': notes});
+                
+                
             },
             testMethod()
             {
