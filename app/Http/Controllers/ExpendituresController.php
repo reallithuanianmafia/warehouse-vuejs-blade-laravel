@@ -28,11 +28,24 @@ class ExpendituresController extends Controller
         $expenditure->notes = $request->input('notes');
         $expenditure->user_id = auth()->user()->id;
         $expenditure->save();
+        if($expenditure)
+        {
+            $product = Product::find($expenditure->product_id);
+            $product->current += $expenditure->quantity;
+            $product->save();
+        }
         return $expenditure;
+        
     }
     public function destroy(Request $request, $expenditure)
     {
         $expenditure = Expenditure::where('id', $expenditure)->first();
+        if($expenditure)
+        {
+            $product = Product::find($expenditure->product_id);
+            $product->current -= $expenditure->quantity;
+            $product->save();
+        }
         $expenditure->delete();
         return 'deleted';
         //return $request;

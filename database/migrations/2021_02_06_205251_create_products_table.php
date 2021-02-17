@@ -19,6 +19,7 @@ class CreateProductsTable extends Migration
             $table->integer('quantity')->nullable();
             $table->string('notes')->nullable();
             $table->integer('user_id')->nullable();
+            $table->integer('current')->default(0);
             $table->timestamps();
         });
     }

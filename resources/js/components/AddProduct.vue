@@ -104,8 +104,8 @@
             },
             testFunc(id,name,quantity,notes)
             {
-                this.products.push({"id": id,"name": name, "quantity": quantity, "notes": notes});
-                Event.$emit('productCreated', {"id" : id, "name": name, "quantity" : quantity, "notes": notes});
+                this.products.push({"id": id,"name": name, "quantity": quantity, "notes": notes, "current": 0});
+                Event.$emit('productCreated', {"id" : id, "name": name, "quantity" : quantity, "notes": notes, "current": 0});
             },
             removeProduct(productid,index)
             {

@@ -19,10 +19,11 @@
                       <div class="col-md-4" v-for="product in resultQuery" style="margin-bottom: 3%;">
                           <ul class="list-group">
                                 <li class="list-group-item"><strong>{{product.name}}</strong</li>
-                                <li class="list-group-item"><strong>Before: {{product.quantity}}pcs / Remaining: </strong</li>
+                                <li class="list-group-item"><strong><span class="calculation-span"><span class="badge badge-primary">Quantity: <span class="badge badge-light">{{product.quantity}}pcs </span></span> <span class="badge badge-success">Remaining:  <span class="badge badge-light">{{firstCalculation(product.quantity,product.current)}}</span></span> <span class="badge badge-danger">Given: <span class="badge badge-light">{{product.current}}</span></span></span></strong></li>
                                 <li class="list-group-item" v-for="(expenditure,index) in product.expenditures">
                                     <strong>{{expenditure.date}} - {{expenditure.quantity}} pcs</strong>
-                                    <button class="btn btn-dark btn-sm" style="float:right;" @click="removeExpenditure(product.id,index,expenditure.id)">Remove / ID: <span v-html="expenditure.id"></span> / INDEX: {{index}}</button>
+                                    <button class="btn btn-dark btn-sm" style="float:right;" @click="removeExpenditure(product.id,index,expenditure.id,expenditure.quantity)">Remove</button>
+                                    <p style="margin-top:3%;">{{expenditure.notes}}</p>
                                 </li>
                           </ul>
                       </div>
@@ -82,8 +83,8 @@
                 console.log(error);
                 });
 
-        Event.$on('productCreated', ({id,name,quantity,notes}) => {
-            this.products.push({"id": id, "name": name, "quantity": quantity, "notes": notes, expenditures: []});
+        Event.$on('productCreated', ({id,name,quantity,notes,current}) => {
+            this.products.push({"id": id, "name": name, "quantity": quantity, "notes": notes,"current": current, expenditures: []});
         });
         Event.$on('productDeleted', ({index}) => {
             this.products.splice(index,1);
@@ -92,7 +93,8 @@
             
         },
         computed: {
-                    resultQuery(){
+                    
+                resultQuery(){
                     if(this.searchQuery){
                         return this.products.filter((item)=>{
                         return this.searchQuery.toLowerCase().split(' ').every(v => item.name.toLowerCase().includes(v))
@@ -101,6 +103,7 @@
                         return this.products;
                     }
                 },
+
             },
         data()
         {
@@ -123,9 +126,7 @@
                 var date = this.date;
                 var quantity = this.quantity;
                 var notes = this.notes;
-
                 this.newExpenditureAxios(productid,date,quantity,notes);
-                
                 
             },
             newExpenditureAxios(productid,date,quantity,notes)
@@ -142,6 +143,7 @@
             {
                 var getProduct = this.products.map(function(x) {return x.id; }).indexOf(productid);
                 this.products[getProduct].expenditures.push({"id": responseid,'date': date,'quantity': quantity,'notes': notes});
+                this.products[getProduct].current = parseInt(this.products[getProduct].current) + parseInt(quantity);
                 
                 
             },
@@ -156,7 +158,7 @@
                 this.getstatus = elementPos;
                 //this.products[100]
             },
-            removeExpenditure(id,index, expenditure)
+            removeExpenditure(id,index, expenditure,quantity)
             {
                 //alert(expenditure);
                 axios.delete('/api/expenditures/'+ expenditure + '/destroy', {
@@ -166,7 +168,13 @@
                 })
                 .then(response => this.getstatus = response.data);
                 var getProduct = this.products.map(function(x) {return x.id; }).indexOf(id);
-                this.$delete(this.products[getProduct].expenditures, index)
+                //this.products[getProduct].current -= quantity; 
+                this.$delete(this.products[getProduct].expenditures, index);
+                this.products[getProduct].current = parseInt(this.products[getProduct].current) - parseInt(quantity);
+            },
+            firstCalculation: function(quantity,current)
+            {
+                return quantity-current;
             }
             //myArraySum(){
             //    var sum = [1,2,3,4,5].reduce(function(a,b){
@@ -179,6 +187,16 @@
             //    //}
             //    //return sum;
             //}
+        },
+        watch: {
+            
         }
     }
 </script>
+
+<style scoped>
+    .calculation-span
+    {
+        font-size: 1.4em;
+    }
+</style>
